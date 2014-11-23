@@ -1,0 +1,13 @@
+@(noteForm: Form[Note])
+
+@import helper._
+@import bootstrap._
+
+@main("Редактирование записи") {
+    @form(routes.Application.saveNote(new Long(noteForm("id").value))) {
+        @text(noteForm("name"),  "ФИО", "ФИО контакта", "")
+        @text(noteForm("cellPhone"), "Мобильный телефон", "Введите телефон, 10 цифр", "" )
+        @text(noteForm("homePhone"), "Домашний телефон", "введите телефон", "")
+        <button type="submit" value="submit" class = "btn btn-primary">Сохранить</button>
+    }
+}

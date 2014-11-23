@@ -1,0 +1,34 @@
+@(notes: List[Note], noteForm: Form[Note])
+
+@import bootstrap._
+@import helper._
+
+@main("Записная книжка") {
+    @if(notes.size() > 0) {
+    <h1>Ваши контакты</h1>
+    <table class="table table-striped">
+        <tr><th>Имя</th><th>Домашний телефон</th><th>Мобильный телефон</th><th></th></tr>
+        @for(note <- notes) {
+        <tr>
+            <td>@note.name </td>
+            <td>@note.homePhone </td>
+            <td>@note.cellPhone</td>
+            <td>
+                <a href="@routes.Application.editNote(note.id)" class="btn btn-default">Изменить</a>
+                <a href="@routes.Application.deleteNote(note.id)" class="btn btn-danger">Удалить</a>
+            </td>
+        </tr>
+        }
+    </table>
+    }
+
+    <h1>Новый контакт</h1>
+
+    @form(routes.Application.createNote()) {
+        @text(noteForm("name"),  "ФИО", "ФИО контакта", "")
+        @text(noteForm("cellPhone"), "Мобильный телефон", "Введите телефон, 10 цифр", "" )
+        @text(noteForm("homePhone"), "Домашний телефон", "введите телефон", "")
+        <button type="submit" value="submit" class = "btn btn-default">Добавить</button>
+    }
+
+}
