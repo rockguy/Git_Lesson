@@ -25,9 +25,9 @@
     <h1>Новый контакт</h1>
 
     @form(routes.Application.createNote()) {
-        @text(noteForm("name"),  "ФИО", "ФИО контакта", "")
-        @text(noteForm("cellPhone"), "Мобильный телефон", "Введите телефон, 10 цифр", "" )
-        @text(noteForm("homePhone"), "Домашний телефон", "введите телефон", "")
+        @text(noteForm("name"), '_label ->"ФИО", 'placeholder -> "ФИО контакта")
+        @text(noteForm("cellPhone"), '_label -> "Мобильный телефон", 'placeholder -> "Введите телефон, 10 цифр")
+        @text(noteForm("homePhone"), '_label ->"Домашний телефон", 'placeholder ->"введите телефон")
         <button type="submit" value="submit" class = "btn btn-default">Добавить</button>
     }
 
