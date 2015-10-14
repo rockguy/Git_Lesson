@@ -26,6 +26,7 @@ public class Note extends Model {
         return find.all();
     }
 
+    @Deprecated
     public static void edit(Note note,Long id) {
         note.update(id);
     }
