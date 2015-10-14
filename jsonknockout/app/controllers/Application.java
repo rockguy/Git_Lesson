@@ -2,20 +2,21 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import play.Play;
 import play.Routes;
 import play.libs.Json;
 import play.mvc.*;
 import play.data.*;
 import models.*;
 
-import java.io.File;
 import java.util.List;
+
+import static play.libs.Json.toJson;
 
 public class Application extends Controller {
     static Form<Note> noteForm = Form.form(Note.class);
 
     public static Result index() {
+        //используем реверсную маршрутизацию для генерации строки URL из action-а контролера
         return redirect(controllers.routes.Application.notes());
     }
 
@@ -24,7 +25,7 @@ public class Application extends Controller {
      */
     public static Result notes() {
         return ok(
-                views.html.index.render(Note.all(), noteForm)
+                views.html.index.render(noteForm)
         );
     }
 
@@ -35,48 +36,31 @@ public class Application extends Controller {
 
         JsonNode json = request().body().asJson();
 
-        ObjectNode result = Json.newObject();
         if (json == null) {
-            result.put("status", "KO");
-            result.put("error", "JSON expected");
-            return badRequest(result);
+            return errorJsonResult("JSON expected");
         } else {
-            String name = json.findPath("name").textValue();
-            String homePhone = json.findPath("homePhone").textValue();
-            String cellPhone = json.findPath("cellPhone").textValue();
-            Long id = null;
-            try {
-                id = json.findPath("id").longValue();
-                if (id == 0) id = null;
-            } catch (NumberFormatException nfe) {
-                //id = null, ничего не делаем
+            ObjectNode noteNode = Json.fromJson(json,ObjectNode.class);
+
+            //todo note from json
+
+            Long id = json.get("id").asLong();
+            Note note = null;
+            if (id!=0){
+                note = Note.find.byId(id);
+            }
+            if (note == null){
+                //создаем новый Note
+                note = new Note();
             }
 
-            ObjectNode noteNode = Json.newObject();
-            noteNode.put("name", name);
-            noteNode.put("homePhone", homePhone);
-            noteNode.put("cellPhone", cellPhone);
+            note.cellPhone = noteNode.findPath("cellPhone").asText();
+            note.homePhone = noteNode.findPath("homePhone").asText();
+            note.name = noteNode.findPath("name").asText();
 
-            Note note = new Note();
-            note.name = name;
-            note.homePhone = homePhone;
-            note.cellPhone = cellPhone;
+            play.Logger.info("trying to save to DB");
+            note.save();
 
-            if (id == null) {
-                //create
-                play.Logger.info("trying to save note");
-                note.save();
-                noteNode.put("id", note.id);
-            } else {
-                //update
-                note.id = id;
-                Note.edit(note, id);
-                noteNode.put("id", id);
-            }
-
-            result.put("status", "OK");
-            result.put("note", noteNode);
-            return ok(result);
+            return ok(toJson(note));
         }
     }
 
@@ -85,54 +69,43 @@ public class Application extends Controller {
         play.Logger.info("deleteNoteJson()");
         JsonNode json = request().body().asJson();
 
-        ObjectNode result = Json.newObject();
         if (json == null) {
-            result.put("status", "KO");
-            result.put("error", "JSON expected");
-            return badRequest(result);
+            return errorJsonResult("Json expected");
         } else {
             Long id = null;
             try {
-                id = Long.valueOf(json.findPath("id").longValue());
+                id = json.findPath("id").longValue();
             } catch (NumberFormatException nfe) {
                 //id = null, ничего не делаем
             }
 
             if (id == null) {
-                result.put("status", "KO");
-                result.put("error", "id expected");
-                return badRequest(result);
+                return errorJsonResult("id expected");
             } else {
-
                 Note note = Note.find.byId(id);
                 if (note == null) {
-                    result.put("status", "KO");
-                    result.put("error", "note is not found");
-                    return badRequest(result);
+                    return notFound(errorJson("note is not found"));
                 }
-
+                JsonNode result = toJson(note);
                 note.delete();
+                return ok(result);
             }
-            result.put("status", "OK");
-            return ok(result);
         }
     }
 
     public static Result notesJson() {
-        ObjectNode result = Json.newObject();
         List<Note> all = Note.all();
-
-        if (all == null) {
-            result.put("status", "KO");
-            result.put("error", "list of notes is null");
-            return badRequest(result);
-        } else {
-            JsonNode notesJson = Json.toJson(all);
-            result.put("status", "OK");
-            result.put("objects", notesJson);
-            return ok(result);
-        }
+        return ok(toJson(all));
     }
+
+    private static Result errorJsonResult(String errorMessage){
+        return badRequest(errorJson(errorMessage));
+    }
+
+    private static JsonNode errorJson(String errorMessage){
+        return Json.newObject().put("error", errorMessage);
+    }
+
 
     public static Result jsRoutes() {
         response().setContentType("text/javascript");

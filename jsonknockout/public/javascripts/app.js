@@ -4,7 +4,7 @@ function Note(id, name, homePhone, cellPhone) {
     self.name = ko.observable(name);
     self.homePhone = ko.observable(homePhone);
     self.cellPhone = ko.observable(cellPhone);
-    self.id = id;
+    self.id = id; // не observable поле
 }
 
 //ViewModel
@@ -36,44 +36,43 @@ function NotesViewModel() {
                 console.log("Успешно обработан ajax запрос. Запись добавлена");
                 console.log(data);
                 //обновляем данные локально
-                if (note.id == null){
-                    //создание нового
+                if (note.id == null){ /*создание нового */
                     //добавляем в массив записей
-                    note.id = data.note.id; //только что создан и получен от сервера
+                    note.id = data.id;  //только что создан и получен от сервера
                     self.notes.push(note);
                 } else {
                     //редактирование - ищем и обновляем
                     console.log(self.notes());
-                    //self.reload();
                      for (i=0; i< self.notes().length; i++){
                          console.log(self.notes()[i].id);
-                         if (self.notes()[i].id == data.note.id){
+                         if (self.notes()[i].id === data.id){
                              console.log("found");
-                             self.notes()[i].name(data.note.name);
-                             self.notes()[i].homePhone(data.note.homePhone);
-                             self.notes()[i].cellPhone(data.note.cellPhone);
+                             self.notes()[i].name(data.name);
+                             self.notes()[i].homePhone(data.homePhone);
+                             self.notes()[i].cellPhone(data.cellPhone);
                              console.log(self.notes()[i]);
                              break;
                          }
                      }
                 }
 
-
                 //обновляем (очищаем) форму
-                self.name("");
-                self.cellPhone("");
-                self.homePhone("");
-                self.id(null);
+                self.cleanForm();
             },
             error : function(data) {
-                alert("error! "+ data.error)
+                alert("error! "+ data.error);
                 console.log('error! Не могу отправить json запрос');
                 console.log(data);
             }
         });
+    };
 
-
-    }
+    self.cleanForm = function(){
+        self.name("");
+        self.cellPhone("");
+        self.homePhone("");
+        self.id(null);
+    };
 
     self.editNote = function(note) {
         console.log(note);
@@ -82,7 +81,7 @@ function NotesViewModel() {
         self.cellPhone(note.cellPhone());
         self.homePhone(note.homePhone());
 
-    }
+    };
 
     self.removeNote = function(note) {
         //todo Уведомляем сервер
@@ -93,26 +92,26 @@ function NotesViewModel() {
             dataType : 'json',
             contentType : 'application/json; charset=utf-8',
             data : jsonData,
-            success : function(data) {
+            success : function() {
                 console.log("Успешно обработан ajax запрос. Запись удалена");
-                console.log(data);
+                //console.log(data);
                 //обновляем данные локально. Обращаю внимание, что при удалении элементов работаем с notes.remove вместо notes().remove
                 self.notes.remove(note);
             },
             error : function(data) {
-                alert("error! "+ data.error)
+                alert("error! "+ data.error);
                 console.log('error! Не могу отправить json запрос');
                 console.log(data);
             }
         });
 
 
-    }
+    };
 
     self.reload = function() {
         self.notes.destroyAll(); //при удалении работаем с самим объектом notes вместо notes()
         self.load();
-    }
+    };
 
     self.load = function() {
         jsRoutes.controllers.Application.notesJson().ajax({
@@ -121,18 +120,17 @@ function NotesViewModel() {
             //data : jsonData,
             success : function(data) {
                 console.log("Успешно обработан json запрос. Записи загружены");
-                var objects = data.objects;
-                for (i=0; i< objects.length; i++){
-                    self.notes.push(new Note(objects[i].id, objects[i].name, objects[i].homePhone, objects[i].cellPhone));
+                for (i=0; i< data.length; i++){
+                    self.notes.push(new Note(data[i].id, data[i].name, data[i].homePhone, data[i].cellPhone));
                 }
             },
             error : function(data) {
-                alert("error! "+ data.error)
+                alert("error! "+ data.error);
                 console.log('error! Не могу отправить json запрос');
                 console.log(data);
             }
         });
-    }
+    };
 
     self.load();
 }
