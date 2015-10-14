@@ -16,7 +16,7 @@ public class Application extends Controller {
     static Form<Note> noteForm = Form.form(Note.class);
 
     public static Result index() {
-        return redirect(routes.Application.notes());
+        return redirect(controllers.routes.Application.notes());
     }
 
     /*
@@ -24,19 +24,19 @@ public class Application extends Controller {
      */
     public static Result notes() {
         return ok(
-            views.html.index.render(Note.all(), noteForm)
+                views.html.index.render(Note.all(), noteForm)
         );
     }
 
     //API для взаимодействия клиентов с сервером посредством JSON
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result saveNoteJson(){
-        System.out.println("saveNoteJson()");
+    public static Result saveNoteJson() {
+        play.Logger.info("saveNoteJson()");
 
         JsonNode json = request().body().asJson();
 
         ObjectNode result = Json.newObject();
-        if(json == null) {
+        if (json == null) {
             result.put("status", "KO");
             result.put("error", "JSON expected");
             return badRequest(result);
@@ -45,14 +45,12 @@ public class Application extends Controller {
             String homePhone = json.findPath("homePhone").textValue();
             String cellPhone = json.findPath("cellPhone").textValue();
             Long id = null;
-            try{
+            try {
                 id = json.findPath("id").longValue();
-                if (id==0) id = null;
-            } catch (NumberFormatException nfe){
+                if (id == 0) id = null;
+            } catch (NumberFormatException nfe) {
                 //id = null, ничего не делаем
             }
-
-            System.out.println(id);
 
             ObjectNode noteNode = Json.newObject();
             noteNode.put("name", name);
@@ -66,7 +64,7 @@ public class Application extends Controller {
 
             if (id == null) {
                 //create
-                System.out.println("trying to save note");
+                play.Logger.info("trying to save note");
                 note.save();
                 noteNode.put("id", note.id);
             } else {
@@ -76,7 +74,6 @@ public class Application extends Controller {
                 noteNode.put("id", id);
             }
 
-
             result.put("status", "OK");
             result.put("note", noteNode);
             return ok(result);
@@ -84,20 +81,20 @@ public class Application extends Controller {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result deleteNoteJson(){
-        System.out.println("deleteNoteJson()");
+    public static Result deleteNoteJson() {
+        play.Logger.info("deleteNoteJson()");
         JsonNode json = request().body().asJson();
 
         ObjectNode result = Json.newObject();
-        if(json == null) {
+        if (json == null) {
             result.put("status", "KO");
             result.put("error", "JSON expected");
             return badRequest(result);
         } else {
             Long id = null;
-            try{
+            try {
                 id = Long.valueOf(json.findPath("id").longValue());
-            } catch (NumberFormatException nfe){
+            } catch (NumberFormatException nfe) {
                 //id = null, ничего не делаем
             }
 
@@ -108,7 +105,7 @@ public class Application extends Controller {
             } else {
 
                 Note note = Note.find.byId(id);
-                if (note == null){
+                if (note == null) {
                     result.put("status", "KO");
                     result.put("error", "note is not found");
                     return badRequest(result);
@@ -121,11 +118,11 @@ public class Application extends Controller {
         }
     }
 
-    public static Result notesJson(){
+    public static Result notesJson() {
         ObjectNode result = Json.newObject();
         List<Note> all = Note.all();
 
-        if(all == null) {
+        if (all == null) {
             result.put("status", "KO");
             result.put("error", "list of notes is null");
             return badRequest(result);
