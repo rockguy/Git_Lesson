@@ -27,9 +27,12 @@ import play.data.validation.Constraints.Required;
 public class Register{
 
     //todo обязательное поле с подписью, эл. почта
+    @Required
+    @Email
     public String email;
 
     //todo обязательное поле с подписью
+    @Required
     public String password;
 
     /**
@@ -41,6 +44,7 @@ public class Register{
      */
     public String validate() {
         //todo
+        User.emailAvailable(email);
         return "Не реализовано";
     }
 }

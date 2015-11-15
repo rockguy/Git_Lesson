@@ -26,9 +26,11 @@ import play.data.validation.Constraints;
  */
 public class ChangePassword{
     //todo обязательное поле с подписью
+    @required
     public String password;
 
     //todo обязательное поле с подписью
+    @required
     public String newPassword;
 
 

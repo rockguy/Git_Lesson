@@ -9,6 +9,7 @@ import org.apache.commons.codec.binary.Base64;
 import play.api.libs.Crypto;
 import play.data.validation.Constraints.Email;
 import play.db.ebean.Model;
+import scala.annotation.meta.param;
 
 @Entity
 public class User extends Model {
@@ -49,8 +50,8 @@ public class User extends Model {
      * @return хэш от пароля в соответствии с применяемым алгоритмом
      */
     private String getHash(String s) {
-        //todo
-        return s;
+        //+todo
+         return SHA256(s);
     }
 
     /**
@@ -60,8 +61,11 @@ public class User extends Model {
      * @param password (новый) пароль
      */
     public void setPassword(String password) {
-        //todo Сгенерировать соль
-        //todo установить хэш от пароля (с солью)
+        genSalt();
+        getHash(password);
+
+        //+todo Сгенерировать соль
+        //+todo установить хэш от пароля (с солью)
     }
 
     /**
@@ -70,9 +74,13 @@ public class User extends Model {
      * @param password пароль
      * @return в случае совпадения пароля, возвращет true, иначе возвращает false
      */
-    private boolean checkPassword(String password) {
+    private static boolean checkPassword(String password) {
+
         //todo при необходимости исопльзовать сохраненную соль данного пользователя
+
+
         //todo реализовать сравнение хэшей от пароля с тем, что хранится в базе
+
         return !password.isEmpty();
     }
 
@@ -87,7 +95,12 @@ public class User extends Model {
      */
     public static String authenticate(String email, String password) {
         //todo
-        return null;
+        if (User.emailAvailable(email)){
+            if(checkPassword(password)){
+                return null;
+            }else{return "Bad password";}
+        }
+        else{return "Bad email";}
     }
 
 
@@ -100,7 +113,9 @@ public class User extends Model {
      */
     public static boolean emailAvailable(String email) {
         //todo
-        return true;
+        if ((User.find.byId(email))!= null){
+        return true;}
+        else{return false;}
     }
 
 
